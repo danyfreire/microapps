@@ -121,3 +121,31 @@ No duplicar requisitos completos entre documentos: referenciar la fuente de verd
 "Puedes registrar cualquier cosa. La app solo certifica socialmente lo verificado."
 "El reto es personal. La competencia es social."
 "Cada semana tienes una nueva oportunidad de ganar."
+
+## Gates obligatorios de rol
+
+### Antes de escalar al Product Owner
+El agente DEBE buscar primero la respuesta en PRD.md y DESIGN.md y citar internamente la sección relevante.
+No escalar una decisión puramente técnica que el Architect puede resolver sin cambiar producto, coste o servicios aprobados.
+Si existe una ambigüedad real de producto, el agente debe BLOQUEAR la tarjeta; no puede marcarla done dejando "preguntas abiertas para PO".
+
+### Gate del Architect
+Antes de completar:
+- verificar que cada decisión técnica respeta PRD y DESIGN;
+- resolver decisiones técnicas propias del rol;
+- bloquear si falta una decisión de producto material;
+- no introducir autenticación con password/credentials salvo aprobación explícita del PRD/PO.
+
+### Gate del Developer
+Si ARCHITECTURE contradice PRD/DESIGN o contiene decisiones PO pendientes:
+- no continuar como si estuvieran aprobadas;
+- bloquear y señalar la contradicción exacta.
+PRD y DESIGN tienen prioridad sobre ARCHITECTURE.
+
+### Gate de QA
+Antes de escribir criterios de aceptación, ejecutar un audit de consistencia:
+1. comparar ARCHITECTURE e IMPLEMENTATION_PLAN contra PRD y DESIGN;
+2. listar contradicciones concretas;
+3. verificar fórmulas/reglas con valores de dominio, no solo nombres de campos;
+4. si existe una contradicción material, BLOQUEAR la tarea y no declarar PASS ni "sin contradicciones".
+QA no debe convertir una decisión del Architect en requisito si no está respaldada por PRD/DESIGN.
