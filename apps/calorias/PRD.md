@@ -5,7 +5,7 @@
 **Fecha:** 2026-09-30  
 **Producto:** Microapp web/PWA para registro rÃ¡pido de calorÃ­as  
 **Repositorio:** `danyfreire/microapps`  
-**Ruta:** `microapps/calorias/`
+**Ruta:** `apps/calorias/`
 
 ## 1. Resumen
 
@@ -395,4 +395,5 @@ Solo si hay recurrencia:
 ## 18. Principio rector
 
 > **La primera interacciÃ³n debe demostrar valor, no pedir compromiso.**
+
 
