@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { NutritionEstimate } from "@/domain/schemas";
+import type { NutritionComponent, NutritionEstimate } from "@/domain/schemas";
+import {
+  calculateComponent,
+  calculateComponents,
+  formatPortionQuantity,
+  getSelectedUnit,
+} from "@/domain/portions";
 import { confidenceLabel, formatGrams, formatKcal } from "@/lib/format";
-import { CheckIcon, EditIcon, PlusIcon, XIcon } from "./icons";
+import { EditIcon, PlusIcon, XIcon } from "./icons";
 
 export interface EditableDraft {
   label: string;
@@ -11,6 +17,7 @@ export interface EditableDraft {
   proteinGrams: number;
   carbsGrams: number;
   fatGrams: number;
+  components?: NutritionComponent[];
 }
 
 interface EstimatePanelProps {
@@ -21,29 +28,6 @@ interface EstimatePanelProps {
   onCancel: () => void;
 }
 
-interface FormState {
-  label: string;
-  calories: string;
-  proteinGrams: string;
-  carbsGrams: string;
-  fatGrams: string;
-}
-
-function toForm(estimate: NutritionEstimate): FormState {
-  return {
-    label: estimate.dish,
-    calories: String(estimate.estimatedCalories),
-    proteinGrams: String(estimate.proteinGrams),
-    carbsGrams: String(estimate.carbsGrams),
-    fatGrams: String(estimate.fatGrams),
-  };
-}
-
-function toNonNeg(value: string): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? Math.max(0, n) : 0;
-}
-
 export function EstimatePanel({
   estimate,
   mockBadge = false,
@@ -52,19 +36,53 @@ export function EstimatePanel({
   onCancel,
 }: EstimatePanelProps) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<FormState>(() => toForm(estimate));
+  const [components, setComponents] = useState<NutritionComponent[]>(
+    () => estimate.components?.map((component) => ({ ...component })) ?? [],
+  );
 
-  function set(field: keyof FormState, value: string) {
-    setForm((f) => ({ ...f, [field]: value }));
+  const hasComponents = components.length > 0;
+  const totals = hasComponents
+    ? calculateComponents(components)
+    : {
+        calories: estimate.estimatedCalories,
+        proteinGrams: estimate.proteinGrams,
+        carbsGrams: estimate.carbsGrams,
+        fatGrams: estimate.fatGrams,
+      };
+
+  function updateComponent(
+    index: number,
+    patch: Partial<Pick<NutritionComponent, "quantity" | "unitId">>,
+  ) {
+    setComponents((current) =>
+      current.map((component, componentIndex) => {
+        if (componentIndex !== index) return component;
+
+        let quantity = patch.quantity ?? component.quantity;
+        if (patch.unitId && patch.unitId !== component.unitId && patch.quantity == null) {
+          const previous = getSelectedUnit(component);
+          const next = component.unitOptions.find((option) => option.id === patch.unitId);
+          if (next && previous.caloriesPerUnit > 0 && next.caloriesPerUnit > 0) {
+            quantity = (component.quantity * previous.caloriesPerUnit) / next.caloriesPerUnit;
+            quantity = patch.unitId === "g"
+              ? Math.round(quantity)
+              : Math.round(quantity * 100) / 100;
+          }
+        }
+
+        return { ...component, ...patch, quantity, assumed: false };
+      }),
+    );
   }
 
   function submit() {
     onConfirm({
-      label: form.label.trim() || estimate.dish,
-      calories: Math.round(toNonNeg(form.calories)),
-      proteinGrams: toNonNeg(form.proteinGrams),
-      carbsGrams: toNonNeg(form.carbsGrams),
-      fatGrams: toNonNeg(form.fatGrams),
+      label: estimate.dish,
+      calories: totals.calories,
+      proteinGrams: totals.proteinGrams,
+      carbsGrams: totals.carbsGrams,
+      fatGrams: totals.fatGrams,
+      components: hasComponents ? components : undefined,
     });
   }
 
@@ -75,8 +93,8 @@ export function EstimatePanel({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold text-neutral-900">
-            {editing ? "Editar estimación" : estimate.dish}
+          <h2 className="text-lg font-semibold text-neutral-900">
+            {editing ? "Ajusta las porciones" : estimate.dish}
           </h2>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-600">
@@ -84,7 +102,7 @@ export function EstimatePanel({
             </span>
             {mockBadge && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                Estimación de desarrollo (sin IA)
+                Cálculo local (sin IA)
               </span>
             )}
           </div>
@@ -99,80 +117,40 @@ export function EstimatePanel({
         </button>
       </div>
 
-      {editing ? (
-        <div className="mt-4 space-y-3">
-          <div>
-            <label htmlFor="field-label" className="text-xs font-medium text-neutral-600">
-              Descripción
-            </label>
-            <input
-              id="field-label"
-              type="text"
-              value={form.label}
-              onChange={(e) => set("label", e.target.value)}
-              className="mt-1 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-base text-neutral-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <NumberField
-              id="field-calories"
-              label="Calorías (kcal)"
-              value={form.calories}
-              onChange={(v) => set("calories", v)}
-            />
-            <NumberField
-              id="field-protein"
-              label="Proteína (g)"
-              value={form.proteinGrams}
-              onChange={(v) => set("proteinGrams", v)}
-            />
-            <NumberField
-              id="field-carbs"
-              label="Carbohidratos (g)"
-              value={form.carbsGrams}
-              onChange={(v) => set("carbsGrams", v)}
-            />
-            <NumberField
-              id="field-fat"
-              label="Grasa (g)"
-              value={form.fatGrams}
-              onChange={(v) => set("fatGrams", v)}
-            />
-          </div>
-        </div>
+      <p className="mt-3 text-4xl font-bold tracking-tight text-neutral-900">
+        ≈ {formatKcal(totals.calories)}
+      </p>
+
+      {!hasComponents && estimate.calorieRange && (
+        <p className="mt-1 text-sm text-neutral-500">
+          {formatKcal(estimate.calorieRange.min)}–{formatKcal(estimate.calorieRange.max)} estimadas
+        </p>
+      )}
+
+      <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
+        <Macro label="Proteína" value={formatGrams(totals.proteinGrams)} />
+        <Macro label="Carbohidratos" value={formatGrams(totals.carbsGrams)} />
+        <Macro label="Grasa" value={formatGrams(totals.fatGrams)} />
+      </dl>
+
+      {hasComponents ? (
+        editing ? (
+          <PortionEditor components={components} onUpdate={updateComponent} />
+        ) : (
+          <PortionSummary components={components} />
+        )
       ) : (
-        <>
-          <p className="mt-3 text-4xl font-bold tracking-tight text-neutral-900">
-            ≈ {formatKcal(estimate.estimatedCalories)}
+        <div className="mt-4 rounded-xl bg-white p-3 text-sm text-neutral-600">
+          <p className="font-medium">No pude separar esta comida en porciones editables.</p>
+          <p className="mt-1">
+            Para afinarla, descríbela con cantidades; por ejemplo: “1 taza de arroz,
+            1/2 taza de menestra y 100 g de pollo”.
           </p>
-          {estimate.calorieRange && (
-            <p className="mt-1 text-sm text-neutral-500">
-              {formatKcal(estimate.calorieRange.min)}–{formatKcal(estimate.calorieRange.max)}{" "}
-              estimadas
-            </p>
-          )}
-
-          <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
-            <Macro label="Proteína" value={formatGrams(estimate.proteinGrams)} />
-            <Macro label="Carbohidratos" value={formatGrams(estimate.carbsGrams)} />
-            <Macro label="Grasa" value={formatGrams(estimate.fatGrams)} />
-          </dl>
-
-          {estimate.assumptions.length > 0 && (
-            <div className="mt-4">
-              <p className="text-xs font-medium text-neutral-600">Supuse:</p>
-              <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-neutral-600">
-                {estimate.assumptions.map((a) => (
-                  <li key={a}>{a}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
+        </div>
       )}
 
       <p className="mt-4 text-xs text-neutral-500">
-        Esta es una estimación. Puedes corregirla antes de agregarla.
+        Tú corriges qué y cuánto comiste; Calo hace las cuentas de calorías y macros.
       </p>
 
       <div className="mt-4 flex gap-2">
@@ -181,19 +159,159 @@ export function EstimatePanel({
           onClick={submit}
           className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 text-base font-semibold text-white transition-colors hover:bg-emerald-700 active:bg-emerald-800"
         >
-          {editing ? <CheckIcon className="h-5 w-5" /> : <PlusIcon className="h-5 w-5" />}
-          {editing ? "Guardar" : confirmLabel}
+          <PlusIcon className="h-5 w-5" />
+          {confirmLabel}
         </button>
-        <button
-          type="button"
-          onClick={() => setEditing((v) => !v)}
-          className="flex h-12 items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
-        >
-          <EditIcon className="h-5 w-5" />
-          {editing ? "Ver" : "Editar"}
-        </button>
+        {hasComponents && (
+          <button
+            type="button"
+            onClick={() => setEditing((value) => !value)}
+            className="flex h-12 items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+          >
+            <EditIcon className="h-5 w-5" />
+            {editing ? "Ver resumen" : "Ajustar porciones"}
+          </button>
+        )}
       </div>
     </section>
+  );
+}
+
+function PortionSummary({ components }: { components: NutritionComponent[] }) {
+  return (
+    <div className="mt-4">
+      <p className="mb-2 text-xs font-medium text-neutral-600">Calculé con estas porciones:</p>
+      <div className="space-y-2">
+        {components.map((component) => {
+          const option = getSelectedUnit(component);
+          const value = calculateComponent(component);
+          return (
+            <div
+              key={component.id}
+              className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5"
+            >
+              <div className="min-w-0">
+                <p className="font-medium text-neutral-900">{component.name}</p>
+                <p className="text-sm text-neutral-500">
+                  {formatPortionQuantity(component.quantity)} {option.label}
+                  {component.assumed && (
+                    <span className="ml-2 text-amber-700">· asumido</span>
+                  )}
+                </p>
+              </div>
+              <span className="shrink-0 text-sm font-semibold text-neutral-700">
+                {formatKcal(value.calories)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PortionEditor({
+  components,
+  onUpdate,
+}: {
+  components: NutritionComponent[];
+  onUpdate: (
+    index: number,
+    patch: Partial<Pick<NutritionComponent, "quantity" | "unitId">>,
+  ) => void;
+}) {
+  return (
+    <div className="mt-4 space-y-3">
+      <p className="text-sm text-neutral-600">
+        Corrige las cantidades que realmente comiste. El total cambia al instante.
+      </p>
+      {components.map((component, index) => {
+        const selected = getSelectedUnit(component);
+        const value = calculateComponent(component);
+        const quickValues =
+          component.unitId === "cup"
+            ? [
+                [0.25, "¼"],
+                [1 / 3, "⅓"],
+                [0.5, "½"],
+                [0.75, "¾"],
+                [1, "1"],
+              ] as Array<[number, string]>
+            : component.unitId === "g"
+              ? [
+                  [50, "50"],
+                  [100, "100"],
+                  [150, "150"],
+                  [200, "200"],
+                ] as Array<[number, string]>
+              : [];
+
+        return (
+          <div key={component.id} className="rounded-xl bg-white p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-medium text-neutral-900">{component.name}</p>
+              <span className="text-sm font-semibold text-neutral-600">
+                {formatKcal(value.calories)}
+              </span>
+            </div>
+
+            <div className="mt-2 flex gap-2">
+              <label className="sr-only" htmlFor={`portion-${component.id}`}>
+                Cantidad de {component.name}
+              </label>
+              <input
+                id={`portion-${component.id}`}
+                type="number"
+                inputMode="decimal"
+                min="0.01"
+                step={component.unitId === "g" ? "1" : "0.01"}
+                value={component.quantity}
+                onChange={(event) => {
+                  const quantity = Number(event.target.value);
+                  if (Number.isFinite(quantity) && quantity > 0) {
+                    onUpdate(index, { quantity });
+                  }
+                }}
+                className="min-w-0 flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-base outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              />
+              {component.unitOptions.length > 1 ? (
+                <select
+                  aria-label={`Unidad de ${component.name}`}
+                  value={component.unitId}
+                  onChange={(event) => onUpdate(index, { unitId: event.target.value })}
+                  className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-base outline-none focus:border-emerald-500"
+                >
+                  {component.unitOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="flex min-w-16 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-600">
+                  {selected.label}
+                </div>
+              )}
+            </div>
+
+            {quickValues.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {quickValues.map(([quantity, label]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => onUpdate(index, { quantity })}
+                    className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+                  >
+                    {label} {selected.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -202,35 +320,6 @@ function Macro({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl bg-white px-2 py-3">
       <dt className="text-xs text-neutral-500">{label}</dt>
       <dd className="mt-0.5 text-sm font-semibold text-neutral-900">{value}</dd>
-    </div>
-  );
-}
-
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="text-xs font-medium text-neutral-600">
-        {label}
-      </label>
-      <input
-        id={id}
-        type="number"
-        inputMode="decimal"
-        min="0"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-base text-neutral-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-      />
     </div>
   );
 }

@@ -79,6 +79,7 @@ export default function HomePage() {
         proteinGrams: editable.proteinGrams,
         carbsGrams: editable.carbsGrams,
         fatGrams: editable.fatGrams,
+        components: editable.components,
       };
     } else {
       meal = {
@@ -92,6 +93,7 @@ export default function HomePage() {
         source: "text",
         confidence: draft.estimate.confidence,
         assumptions: draft.estimate.assumptions,
+        components: editable.components,
       };
     }
 

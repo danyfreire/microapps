@@ -46,7 +46,30 @@ describe("MockEstimator", () => {
   it("multiplica por cantidad para alimentos contables", async () => {
     const result = await estimator.estimateFromText("3 patacones");
     expect(result.estimatedCalories).toBe(3 * 170);
-    expect(result.assumptions.some((a) => a.includes("3 ×"))).toBe(true);
+    expect(result.components?.[0].quantity).toBe(3);
+    expect(result.components?.[0].assumed).toBe(false);
+    expect(result.assumptions).toHaveLength(0);
+  });
+
+  it("interpreta fracciones, tazas y gramos explícitos", async () => {
+    const result = await estimator.estimateFromText(
+      "1/3 de taza de arroz, una taza de menestra y 100 gr de pollo",
+    );
+
+    expect(result.confidence).toBe("high");
+    expect(result.calorieRange).toBeUndefined();
+    expect(result.assumptions).toHaveLength(0);
+    expect(result.estimatedCalories).toBe(475);
+
+    const rice = result.components?.find((item) => item.name === "Arroz cocido");
+    const beans = result.components?.find((item) => item.name === "Menestra");
+    const chicken = result.components?.find((item) => item.name === "Pollo");
+    expect(rice?.quantity).toBeCloseTo(1 / 3);
+    expect(rice?.unitId).toBe("cup");
+    expect(beans?.quantity).toBe(1);
+    expect(beans?.unitId).toBe("cup");
+    expect(chicken?.quantity).toBe(100);
+    expect(chicken?.unitId).toBe("g");
   });
 
   it("usa confianza baja para un plato no reconocido", async () => {

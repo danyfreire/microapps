@@ -137,15 +137,17 @@ El usuario pierde el diario si limpia el navegador o cambia de equipo.
 
 Esto es aceptable para validar el producto.
 
-### Decisión B — Sin catálogo nutricional propio en V1
+### Decisión B — Catálogo mínimo + cálculo determinístico
 
-Razón:
+V1 no necesita una base nutricional exhaustiva, pero sí un catálogo pequeño de alimentos frecuentes con equivalencias por porción.
 
-Construir y mantener una base exhaustiva no es el valor inicial.
+El parser convierte lenguaje natural y medidas comunes en componentes estructurados. Ejemplo:
 
-El motor estima desde lenguaje natural y devuelve supuestos editables.
+`1/3 taza de arroz + 1 taza de menestra + 100 g de pollo`
 
-Más adelante se puede añadir una capa de datos estructurados para alimentos recurrentes.
+Cada componente contiene cantidad, unidad y valores nutricionales por unidad. Kcal y macros se calculan matemáticamente; no se pide al usuario que edite macros.
+
+Si faltan cantidades, se proponen porciones comunes marcadas como asumidas. Una futura capa de IA puede ayudar a interpretar lenguaje libre o alimentos no reconocidos, sin convertirse obligatoriamente en la calculadora nutricional.
 
 ### Decisión C — Adapter de IA
 
@@ -176,6 +178,7 @@ type Meal = {
   source: "text" | "image" | "manual"
   confidence?: "low" | "medium" | "high"
   assumptions?: string[]
+  components?: NutritionComponent[]
 }
 ```
 
@@ -184,6 +187,26 @@ type Meal = {
 ```ts
 type DailySettings = {
   calorieGoal?: number
+}
+```
+
+### NutritionComponent
+
+```ts
+type NutritionComponent = {
+  id: string
+  name: string
+  quantity: number
+  unitId: string
+  unitOptions: Array<{
+    id: string
+    label: string
+    caloriesPerUnit: number
+    proteinGramsPerUnit: number
+    carbsGramsPerUnit: number
+    fatGramsPerUnit: number
+  }>
+  assumed: boolean
 }
 ```
 
@@ -202,6 +225,7 @@ type NutritionEstimate = {
   fatGrams: number
   confidence: "low" | "medium" | "high"
   assumptions: string[]
+  components?: NutritionComponent[]
 }
 ```
 

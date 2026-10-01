@@ -22,24 +22,27 @@ export function MealComposer({ estimating, onEstimate, onPhoto }: MealComposerPr
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <label htmlFor="meal-input" className="block text-base font-semibold text-neutral-900">
-        ¿Qué comiste?
+        ¿Qué y cuánto comiste?
       </label>
       <textarea
         id="meal-input"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Ej: arroz con menestra, carne y 3 patacones"
+        placeholder="Ej: 1/3 taza de arroz, 1 taza de menestra y 100 g de pollo"
         rows={3}
         autoComplete="off"
         className="w-full resize-none rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
       />
+      <p className="-mt-1 text-xs text-neutral-500">
+        Si no sabes la cantidad exacta, escribe solo la comida y Calo propondrá porciones comunes.
+      </p>
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={!canSubmit}
           className="flex h-12 flex-1 items-center justify-center rounded-full bg-emerald-600 px-5 text-base font-semibold text-white transition-colors hover:bg-emerald-700 active:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-neutral-300"
         >
-          {estimating ? "Estimando…" : "Estimar"}
+          {estimating ? "Calculando…" : "Calcular"}
         </button>
         <button
           type="button"

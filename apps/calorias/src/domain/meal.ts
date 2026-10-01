@@ -18,5 +18,6 @@ export function mealToEstimate(meal: Meal): NutritionEstimate {
     fatGrams: meal.fatGrams,
     confidence: meal.confidence ?? "low",
     assumptions: meal.assumptions ?? [],
+    components: meal.components,
   };
 }

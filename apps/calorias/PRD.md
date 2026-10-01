@@ -145,10 +145,12 @@ No construir inicialmente:
 
 Ejemplos de entradas:
 
-- “Arroz con menestra, carne y 3 patacones.”
+- “Arroz con menestra y carne.”
+- “1/3 de taza de arroz, una taza de menestra y 100 g de pollo.”
 - “Un bolón mixto y café con leche.”
 - “Dos panes de yuca.”
-- “Un encebollado grande.”
+
+Si el usuario no indica cantidades, Calo propone porciones comunes y las marca como asumidas. Si indica medidas domésticas o gramos, esas cantidades se usan directamente.
 
 Salida mínima:
 
@@ -193,14 +195,14 @@ Aceptar lenguaje natural en español y devolver una estimación estructurada.
 
 Permitir subir/capturar una imagen desde móvil.
 
-### FR-04 — Resultado editable
+### FR-04 — Porciones editables
 
-El usuario debe poder cambiar:
+El usuario corrige lo que conoce: alimento, cantidad y unidad de porción.
 
-- descripción;
-- cantidad/porción;
-- kcal;
-- macros.
+- admitir medidas comunes como taza, fracciones de taza, gramos y unidades;
+- recalcular kcal y macros automáticamente al cambiar una porción;
+- kcal y macros son resultados del cálculo, no campos que el usuario deba calcular manualmente;
+- distinguir visualmente las porciones asumidas de las cantidades explícitas.
 
 ### FR-05 — Diario
 
@@ -251,10 +253,12 @@ El motor debe devolver:
 
 Principios:
 
-- preferir rangos cuando la incertidumbre sea alta;
-- exponer supuestos;
-- permitir corrección;
-- no presentar la estimación como exacta;
+- el usuario expresa comida y porciones; Calo hace la aritmética nutricional;
+- usar cálculo determinístico cuando el alimento y la porción estén estructurados;
+- aceptar medidas domésticas (“1/3 taza”, “1 taza”) y peso (“100 g”);
+- exponer las porciones asumidas y permitir corregirlas;
+- reservar rangos amplios para casos que no puedan descomponerse en porciones útiles;
+- no presentar la estimación como una medición exacta;
 - evitar recomendaciones médicas.
 
 ## 11. Seguridad y límites
