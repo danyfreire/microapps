@@ -15,12 +15,12 @@ Basado en PRD.md, DESIGN.md, ARCHITECTURE.md e IMPLEMENTATION_PLAN.md.
 
 | ID | Criterio | Verificación |
 |----|----------|--------------|
-| AC-01 | Usuario puede registrarse con email, password (mín 6 chars) y @username único | POST /api/auth/register retorna 201 y usuario creado |
+| AC-01 | Usuario puede registrarse con email y @username único (autenticación por Magic Link) | POST /api/auth/register retorna 201 y usuario creado, email recibido con link |
 | AC-02 | Email duplicado retorna error 409 | POST /api/auth/register con email existente |
 | AC-03 | Username duplicado retorna error 409 | POST /api/auth/register con username existente |
 | AC-04 | Username inválido (formato) retorna error 400 | Username con caracteres no permitidos |
-| AC-05 | Usuario puede hacer login con email + password | POST /api/auth/signin retorna sesión |
-| AC-06 | Credenciales inválidas retornan error 401 | Login con password incorrecto |
+| AC-05 | Usuario puede hacer login con email (Magic Link) | POST /api/auth/signin retorna email con magic link enviado |
+| AC-06 | Email inválido retorna error 400 | Login con email malformado |
 | AC-07 | Sesión persiste entre páginas | Middleware protege rutas auth |
 | AC-08 | Usuario no autenticado es redirigido a /login | Acceder a /home sin sesión |
 
@@ -80,7 +80,7 @@ Basado en PRD.md, DESIGN.md, ARCHITECTURE.md e IMPLEMENTATION_PLAN.md.
 | ID | Escenario | Entrada | Resultado esperado |
 |----|-----------|---------|--------------------|
 | BE-01 | Email inválido | "not-an-email" | Error 400: email inválido |
-| BE-02 | Password muy corta | "12345" | Error 400: mínimo 6 caracteres |
+| BE-02 | Email no existe para login | "noexiste@test.com" | Error 400 o email de nuevo usuario enviado |
 | BE-03 | Username con espacios | "dan y" | Error 400: formato inválido |
 | BE-04 | Username muy largo | "a" * 50 | Error 400: máximo 30 caracteres |
 | BE-05 | Registro con fecha mañana | tomorrow | Error 400: fecha no permitida |
@@ -120,12 +120,12 @@ Basado en PRD.md, DESIGN.md, ARCHITECTURE.md e IMPLEMENTATION_PLAN.md.
 - [ ] Todos los BE-01 a BE-14 tienen comportamiento definido y documentado
 - [ ] Todos los DR-01 a DR-08 pasan
 - [ ] Build, lint y typecheck pasan
-- [ ] No hay passwords o secrets en logs o responses
+- [ ] No hay passwords o secrets en logs o responses (Magic Link no usa passwords)
 
 ### 5.2 Criterios de FAIL (críticos)
 
 - [ ] Usuario puede registrarse sin validación de email
-- [ ] Usuario puede ver passwords de otros usuarios
+- [ ] Usuario puede ver passwords de otros usuarios (N/A con Magic Link)
 - [ ] Total incluye registros VOIDED
 - [ ] Un usuario puede tener múltiples retos activos
 - [ ] Auto-validación es posible
@@ -150,7 +150,7 @@ Basado en PRD.md, DESIGN.md, ARCHITECTURE.md e IMPLEMENTATION_PLAN.md.
 | Rx = confirmado por otro | Sección 8, 10 | Sección 3.1 | - | DR-02 |
 | Registro hoy/ayer | Sección 7 | Sección 4.3 | 3.1 | AC-11, BE-05, BE-06 |
 | Validación por testigo | Sección 8, 10 | - | - | DR-07, DR-08 |
-| Auth credentials | - | Sección 2.1 | Fase 2 | AC-01 a AC-08 |
+| Auth Magic Link | - | Sección 2.1 | Fase 2 | AC-01 a AC-08 |
 | 3 destinos navegación | Sección 2 | Sección 6 | Fase 5 | AC-20 |
 
 ---
