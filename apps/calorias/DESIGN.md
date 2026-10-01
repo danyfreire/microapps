@@ -1,22 +1,23 @@
-﻿# DESIGN â€” Microapp de CalorÃ­as
+# DESIGN — Microapp de Calorías
 
 **Nombre provisional:** Calo  
-**VersiÃ³n:** 0.1  
+**Versión:** 0.1  
 **Fecha:** 2026-09-30  
-**Objetivo tÃ©cnico:** MVP PWA desplegable en Vercel con arquitectura simple, barata y reemplazable.
+**Objetivo técnico:** MVP PWA desplegable en Vercel con arquitectura simple, barata y reemplazable.
 
-## 1. Principios de diseÃ±o
+## 1. Principios de diseño
 
 1. **Valor inmediato.** La pantalla inicial ya es la herramienta.
-2. **Una acciÃ³n primaria.** Registrar comida.
+2. **Una acción primaria.** Registrar comida.
 3. **Sin onboarding obligatorio.**
 4. **Sin cuenta obligatoria.**
 5. **Mobile-first.**
 6. **Resultados editables.**
 7. **La incertidumbre se muestra, no se oculta.**
-8. **Nada de dark patterns de suscripciÃ³n.**
+8. **Nada de dark patterns de suscripción.**
 9. **Local-first en MVP.**
-10. **IA detrÃ¡s de una interfaz desacoplada para poder cambiar proveedor.**
+10. **IA detrás de una interfaz desacoplada para poder cambiar proveedor.**
+11. **Gamificación no punitiva.** Premiar el hábito de registrar, nunca juzgar la comida.
 
 ## 2. Stack recomendado
 
@@ -74,61 +75,61 @@ Browser / PWA
                      +--> AI provider
 ```
 
-No persistir imÃ¡genes en servidor durante MVP.
+No persistir imágenes en servidor durante MVP.
 
 ## 4. Estructura del proyecto
 
 ```text
 apps/calorias/
-â”œâ”€â”€ PRD.md
-â”œâ”€â”€ DESIGN.md
-â”œâ”€â”€ README.md
-â”œâ”€â”€ package.json
-â”œâ”€â”€ next.config.ts
-â”œâ”€â”€ tsconfig.json
-â”œâ”€â”€ public/
-â”‚   â”œâ”€â”€ manifest.webmanifest
-â”‚   â””â”€â”€ icons/
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ app/
-â”‚   â”‚   â”œâ”€â”€ page.tsx
-â”‚   â”‚   â”œâ”€â”€ diary/page.tsx
-â”‚   â”‚   â”œâ”€â”€ settings/page.tsx
-â”‚   â”‚   â””â”€â”€ api/
-â”‚   â”‚       â””â”€â”€ estimate/
-â”‚   â”‚           â”œâ”€â”€ text/route.ts
-â”‚   â”‚           â””â”€â”€ image/route.ts
-â”‚   â”œâ”€â”€ components/
-â”‚   â”‚   â”œâ”€â”€ MealComposer.tsx
-â”‚   â”‚   â”œâ”€â”€ EstimateCard.tsx
-â”‚   â”‚   â”œâ”€â”€ DailyProgress.tsx
-â”‚   â”‚   â”œâ”€â”€ MealList.tsx
-â”‚   â”‚   â””â”€â”€ BottomNav.tsx
-â”‚   â”œâ”€â”€ domain/
-â”‚   â”‚   â”œâ”€â”€ meal.ts
-â”‚   â”‚   â”œâ”€â”€ nutrition.ts
-â”‚   â”‚   â””â”€â”€ schemas.ts
-â”‚   â”œâ”€â”€ lib/
-â”‚   â”‚   â”œâ”€â”€ storage.ts
-â”‚   â”‚   â”œâ”€â”€ analytics.ts
-â”‚   â”‚   â””â”€â”€ ai/
-â”‚   â”‚       â”œâ”€â”€ provider.ts
-â”‚   â”‚       â””â”€â”€ estimator.ts
-â”‚   â””â”€â”€ styles/
-â””â”€â”€ .env.example
+├── PRD.md
+├── DESIGN.md
+├── README.md
+├── package.json
+├── next.config.ts
+├── tsconfig.json
+├── public/
+│   ├── manifest.webmanifest
+│   └── icons/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx
+│   │   ├── diary/page.tsx
+│   │   ├── settings/page.tsx
+│   │   └── api/
+│   │       └── estimate/
+│   │           ├── text/route.ts
+│   │           └── image/route.ts
+│   ├── components/
+│   │   ├── MealComposer.tsx
+│   │   ├── EstimateCard.tsx
+│   │   ├── DailyProgress.tsx
+│   │   ├── MealList.tsx
+│   │   └── BottomNav.tsx
+│   ├── domain/
+│   │   ├── meal.ts
+│   │   ├── nutrition.ts
+│   │   └── schemas.ts
+│   ├── lib/
+│   │   ├── storage.ts
+│   │   ├── analytics.ts
+│   │   └── ai/
+│   │       ├── provider.ts
+│   │       └── estimator.ts
+│   └── styles/
+└── .env.example
 ```
 
-## 5. InformaciÃ³n arquitectÃ³nica
+## 5. Información arquitectónica
 
-### DecisiÃ³n A â€” Local-first
+### Decisión A — Local-first
 
-RazÃ³n:
+Razón:
 
-- cero fricciÃ³n de cuenta;
+- cero fricción de cuenta;
 - privacidad;
 - menor costo;
 - velocidad;
-- MVP mÃ¡s pequeÃ±o.
+- MVP más pequeño.
 
 Consecuencia:
 
@@ -136,17 +137,17 @@ El usuario pierde el diario si limpia el navegador o cambia de equipo.
 
 Esto es aceptable para validar el producto.
 
-### DecisiÃ³n B â€” Sin catÃ¡logo nutricional propio en V1
+### Decisión B — Sin catálogo nutricional propio en V1
 
-RazÃ³n:
+Razón:
 
 Construir y mantener una base exhaustiva no es el valor inicial.
 
 El motor estima desde lenguaje natural y devuelve supuestos editables.
 
-MÃ¡s adelante se puede aÃ±adir una capa de datos estructurados para alimentos recurrentes.
+Más adelante se puede añadir una capa de datos estructurados para alimentos recurrentes.
 
-### DecisiÃ³n C â€” Adapter de IA
+### Decisión C — Adapter de IA
 
 No acoplar UI ni dominio a OpenAI/Gemini/otro.
 
@@ -242,23 +243,23 @@ Response:
 ### POST /api/estimate/image
 
 - multipart/form-data;
-- mÃ¡ximo inicial sugerido: 5 MB;
-- normalizar tamaÃ±o del lado del cliente;
+- máximo inicial sugerido: 5 MB;
+- normalizar tamaño del lado del cliente;
 - no guardar archivo;
 - borrar buffers al terminar request.
 
-## 8. Prompting / contrato de estimaciÃ³n
+## 8. Prompting / contrato de estimación
 
 El proveedor debe recibir instrucciones para:
 
 - responder exclusivamente JSON validable;
-- asumir porciones comunes cuando falte informaciÃ³n;
+- asumir porciones comunes cuando falte información;
 - declarar los supuestos;
 - priorizar platos latinoamericanos;
 - usar nombres conocidos regionalmente;
-- no fingir precisiÃ³n;
+- no fingir precisión;
 - producir rangos cuando haya incertidumbre;
-- no dar consejo mÃ©dico.
+- no dar consejo médico.
 
 El resultado siempre se valida con Zod.
 
@@ -270,102 +271,102 @@ Si falla:
 
 ## 9. UX / Pantallas
 
-### Pantalla 1 â€” Home / Hoy
+### Pantalla 1 — Home / Hoy
 
 Objetivo: registrar una comida.
 
 Layout:
 
 ```text
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Calo                 Hoy   â”‚
-â”‚                            â”‚
-â”‚  1,240 / 2,000 kcal       â”‚
-â”‚  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘         â”‚
-â”‚                            â”‚
-â”‚  Â¿QuÃ© comiste?             â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
-â”‚  â”‚ Ej: bolÃ³n mixto...   â”‚  â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
-â”‚                            â”‚
-â”‚  [ Estimar ]   [ ðŸ“· Foto ] â”‚
-â”‚                            â”‚
-â”‚  Comidas de hoy            â”‚
-â”‚  â€¢ Desayuno      460 kcal  â”‚
-â”‚  â€¢ Almuerzo      780 kcal  â”‚
-â”‚                            â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌────────────────────────────┐
+│ Calo                 Hoy   │
+│                            │
+│  1,240 / 2,000 kcal       │
+│  ███████████░░░░░         │
+│                            │
+│  ¿Qué comiste?             │
+│  ┌──────────────────────┐  │
+│  │ Ej: bolón mixto...   │  │
+│  └──────────────────────┘  │
+│                            │
+│  [ Estimar ]   [ 📷 Foto ] │
+│                            │
+│  Comidas de hoy            │
+│  • Desayuno      460 kcal  │
+│  • Almuerzo      780 kcal  │
+│                            │
+└────────────────────────────┘
 ```
 
 No modal inicial.
 No onboarding.
 No banner de compra.
 
-### Pantalla 2 â€” Resultado
+### Pantalla 2 — Resultado
 
 ```text
 Arroz con menestra y carne
 
-â‰ˆ 780 kcal
-650â€“900 kcal estimadas
+≈ 780 kcal
+650–900 kcal estimadas
 
-35g proteÃ­na
+35g proteína
 95g carbohidratos
 28g grasa
 
 Supuse:
-â€¢ 1 taza de arroz
-â€¢ 150 g de carne
-â€¢ 3 patacones
+• 1 taza de arroz
+• 150 g de carne
+• 3 patacones
 
-[ Editar ]  [ Agregar a mi dÃ­a ]
+[ Editar ]  [ Agregar a mi día ]
 ```
 
 El rango debe ser visualmente secundario pero visible.
 
-### Pantalla 3 â€” Editar
+### Pantalla 3 — Editar
 
 Campos simples:
 
 - nombre;
-- calorÃ­as;
-- proteÃ­na;
+- calorías;
+- proteína;
 - carbohidratos;
 - grasa.
 
 No obligar al usuario a editar ingredientes.
 
-### Pantalla 4 â€” Ajustes
+### Pantalla 4 — Ajustes
 
 - objetivo kcal;
 - borrar datos locales;
 - privacidad;
-- explicaciÃ³n de estimaciones;
+- explicación de estimaciones;
 - instalar app;
-- versiÃ³n.
+- versión.
 
-## 10. NavegaciÃ³n
+## 10. Navegación
 
-MVP puede usar mÃ¡ximo tres destinos:
+MVP puede usar máximo tres destinos:
 
 - Hoy
 - Historial
 - Ajustes
 
-Si Historial no aporta valor en la primera iteraciÃ³n, omitirlo.
+Si Historial no aporta valor en la primera iteración, omitirlo.
 
-## 11. DiseÃ±o visual
+## 11. Diseño visual
 
-DirecciÃ³n:
+Dirección:
 
 - limpia;
 - amigable;
-- no clÃ­nica;
-- mucha jerarquÃ­a tipogrÃ¡fica;
+- no clínica;
+- mucha jerarquía tipográfica;
 - botones grandes;
 - alto contraste;
 - espacios generosos;
-- una sola acciÃ³n principal por estado.
+- una sola acción principal por estado.
 
 Evitar:
 
@@ -373,14 +374,37 @@ Evitar:
 - medidores que castiguen al usuario;
 - rojo agresivo por exceder objetivo;
 - copy moralizante sobre comida;
-- lenguaje â€œbueno/maloâ€;
+- lenguaje “bueno/malo”;
 - streaks punitivos.
+
+### 11.1 Gamificación ligera — V1.1
+
+Objetivo: aumentar retorno sin convertir la comida en un sistema de premio/castigo.
+
+La gamificación debe basarse en **conductas de registro**, no en el tipo de alimento ni en “cumplir” calorías.
+
+Ejemplos de estados:
+
+```text
+Sin registro hoy       → estado neutro
+Primera comida         → “Ya empezaste tu registro de hoy.”
+Día completado         → celebración ligera
+3/7/14 días registrando → hito de constancia
+```
+
+Reglas UX:
+
+- una racha rota no genera mensajes negativos;
+- exceder el objetivo calórico no cambia la interfaz a rojo de alarma;
+- no usar “comida buena”, “comida mala”, “pecado”, “fallaste” ni equivalentes;
+- una futura mascota/personaje puede cambiar de expresión por la constancia de registro, nunca por lo saludable de una comida;
+- esta capa debe funcionar localmente y no requerir IA para generar mensajes básicos.
 
 ## 12. Copy principal
 
 Home:
 
-> Â¿QuÃ© comiste?
+> ¿Qué comiste?
 
 Placeholder:
 
@@ -388,33 +412,33 @@ Placeholder:
 
 Promesa corta:
 
-> Cuenta tus calorÃ­as sin tarjeta ni registro.
+> Cuenta tus calorías sin tarjeta ni registro.
 
 Resultado:
 
-> Esta es una estimaciÃ³n. Puedes corregirla antes de agregarla.
+> Esta es una estimación. Puedes corregirla antes de agregarla.
 
 ## 13. Estados UX
 
 ### Loading
 
-> Estimando tu comidaâ€¦
+> Estimando tu comida…
 
-No usar loaders largos con textos falsos de â€œanalizando nutrientesâ€.
+No usar loaders largos con textos falsos de “analizando nutrientes”.
 
 ### Baja confianza
 
-> La porciÃ³n no estÃ¡ clara. Te muestro un rango para que puedas ajustarlo.
+> La porción no está clara. Te muestro un rango para que puedas ajustarlo.
 
 ### Error
 
-> No pude estimarlo bien. Intenta describir la porciÃ³n o escribe los componentes principales.
+> No pude estimarlo bien. Intenta describir la porción o escribe los componentes principales.
 
 ### Offline
 
 El diario debe seguir disponible.
 
-Las nuevas estimaciones IA requieren conexiÃ³n.
+Las nuevas estimaciones IA requieren conexión.
 
 ## 14. Privacidad
 
@@ -424,16 +448,16 @@ Por defecto:
 
 - diario local;
 - objetivo local;
-- imÃ¡genes no persistidas;
+- imágenes no persistidas;
 - requests sin identidad;
 - sin cuenta;
 - sin email.
 
-No loggear payloads nutricionales en producciÃ³n salvo debugging temporal y sanitizado.
+No loggear payloads nutricionales en producción salvo debugging temporal y sanitizado.
 
-## 15. AnalÃ­tica
+## 15. Analítica
 
-Preferir analÃ­tica privacy-friendly.
+Preferir analítica privacy-friendly.
 
 Eventos:
 
@@ -450,42 +474,42 @@ goal_saved
 pwa_installed
 ```
 
-No incluir descripciÃ³n de comida ni imagen como propiedad del evento.
+No incluir descripción de comida ni imagen como propiedad del evento.
 
 ## 16. Cost control
 
-Cada estimaciÃ³n tiene un costo.
+Cada estimación tiene un costo.
 
 Controles:
 
-- modelo econÃ³mico por defecto;
-- compresiÃ³n/redimensionado de fotos;
+- modelo económico por defecto;
+- compresión/redimensionado de fotos;
 - rate limiting por IP/device;
-- cachÃ© opcional de consultas normalizadas frecuentes;
-- lÃ­mites razonables si foto se vuelve costosa;
+- caché opcional de consultas normalizadas frecuentes;
+- límites razonables si foto se vuelve costosa;
 - observabilidad de costo por 100 comidas.
 
-Meta arquitectÃ³nica:
+Meta arquitectónica:
 
 > El costo de inferencia no puede definir la UX principal.
 
-Si la foto es cara, texto permanece gratuito y foto puede usar crÃ©ditos.
+Si la foto es cara, texto permanece gratuito y foto puede usar créditos.
 
 ## 17. Performance
 
 Objetivos:
 
-- LCP < 2.5 s en conexiÃ³n mÃ³vil razonable;
-- interfaz usable antes de cargar componentes no crÃ­ticos;
-- JS inicial pequeÃ±o;
-- compresiÃ³n de imÃ¡genes en cliente;
+- LCP < 2.5 s en conexión móvil razonable;
+- interfaz usable antes de cargar componentes no críticos;
+- JS inicial pequeño;
+- compresión de imágenes en cliente;
 - respuesta textual ideal < 4 s;
 - skeleton de resultado no bloqueante.
 
 ## 18. Accesibilidad
 
 - WCAG AA como objetivo;
-- targets tÃ¡ctiles >= 44 px;
+- targets táctiles >= 44 px;
 - labels accesibles;
 - soporte teclado;
 - no depender solo de color;
@@ -494,7 +518,7 @@ Objetivos:
 
 ## 19. Vercel
 
-ConfiguraciÃ³n objetivo:
+Configuración objetivo:
 
 - Framework Preset: Next.js
 - Root Directory: `apps/calorias`
@@ -527,7 +551,7 @@ Claves separadas cuando sea posible.
 
 ## 21. Observabilidad
 
-MÃ­nimo:
+Mínimo:
 
 - errores frontend;
 - errores de API;
@@ -541,7 +565,7 @@ MÃ­nimo:
 ### Unit
 
 - schemas;
-- cÃ¡lculos de totales;
+- cálculos de totales;
 - storage;
 - formateo.
 
@@ -553,7 +577,7 @@ MÃ­nimo:
 
 ### E2E
 
-Ruta crÃ­tica:
+Ruta crítica:
 
 1. abrir;
 2. escribir comida;
@@ -563,29 +587,28 @@ Ruta crÃ­tica:
 6. recargar;
 7. comprobar persistencia.
 
-## 23. Definition of Done â€” MVP
+## 23. Definition of Done — MVP
 
-El MVP estÃ¡ listo para probar cuando:
+El MVP está listo para probar cuando:
 
-- funciona en mÃ³vil y desktop;
+- funciona en móvil y desktop;
 - se puede usar sin cuenta;
-- texto â†’ estimaciÃ³n funciona;
+- texto → estimación funciona;
 - usuario puede editar;
 - usuario puede agregar/eliminar;
 - total diario persiste;
 - objetivo es opcional;
-- existe aviso de estimaciÃ³n;
+- existe aviso de estimación;
 - PWA es instalable;
 - deploy Vercel pasa;
 - no hay secretos en cliente;
-- analÃ­tica no captura texto/fotos;
+- analítica no captura texto/fotos;
 - smoke test E2E pasa.
 
-## 24. Siguiente decisiÃ³n
+## 24. Siguiente decisión
 
 Antes de construir funciones avanzadas, probar la UX central con usuarios reales.
 
 La pregunta que manda el roadmap es:
 
-> **Â¿VolverÃ­an maÃ±ana a registrar otra comida?**
-
+> **¿Volverían mañana a registrar otra comida?**
