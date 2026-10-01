@@ -9,9 +9,34 @@ export const sourceSchema = z.enum(SOURCE_VALUES);
 export type Confidence = z.infer<typeof confidenceSchema>;
 export type Source = z.infer<typeof sourceSchema>;
 
+export const nutritionUnitOptionSchema = z.object({
+  id: z.string().trim().min(1).max(30),
+  label: z.string().trim().min(1).max(40),
+  caloriesPerUnit: z.number().min(0).max(20000),
+  proteinGramsPerUnit: z.number().min(0).max(1000),
+  carbsGramsPerUnit: z.number().min(0).max(2000),
+  fatGramsPerUnit: z.number().min(0).max(1000),
+});
+
+export type NutritionUnitOption = z.infer<typeof nutritionUnitOptionSchema>;
+
+export const nutritionComponentSchema = z.object({
+  id: z.string().trim().min(1).max(80),
+  name: z.string().trim().min(1).max(120),
+  quantity: z.number().positive().max(10000),
+  unitId: z.string().trim().min(1).max(30),
+  unitOptions: z.array(nutritionUnitOptionSchema).min(1).max(10),
+  assumed: z.boolean(),
+});
+
+export type NutritionComponent = z.infer<typeof nutritionComponentSchema>;
+
 /**
  * Resultado de una estimación nutricional. Siempre se valida con Zod antes
  * de aceptarlo (ver src/lib/ai/estimator.ts).
+ *
+ * components es opcional para mantener compatibilidad con estimaciones
+ * antiguas/proveedores que todavía no descomponen la comida en porciones.
  */
 export const nutritionEstimateSchema = z.object({
   dish: z.string().trim().min(1, "Falta la descripción").max(200),
@@ -27,6 +52,7 @@ export const nutritionEstimateSchema = z.object({
   fatGrams: z.number().min(0).max(1000),
   confidence: confidenceSchema,
   assumptions: z.array(z.string().trim().max(200)).max(20),
+  components: z.array(nutritionComponentSchema).max(20).optional(),
 });
 
 export type NutritionEstimate = z.infer<typeof nutritionEstimateSchema>;
@@ -43,6 +69,7 @@ export const mealSchema = z.object({
   source: sourceSchema,
   confidence: confidenceSchema.optional(),
   assumptions: z.array(z.string()).max(20).optional(),
+  components: z.array(nutritionComponentSchema).max(20).optional(),
 });
 
 export type Meal = z.infer<typeof mealSchema>;
