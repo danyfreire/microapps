@@ -57,4 +57,18 @@ function applyRxAction(record, action, context) {
   }
 }
 
-module.exports = { createPersonalRecord, applyRxAction };
+function summarizeUser(records, userId) {
+  const seen = new Set();
+  let total = 0;
+  let rx = 0;
+  for (const record of records) {
+    if (record.userId !== userId || seen.has(record.id)) continue;
+    seen.add(record.id);
+    if (record.status === 'VOIDED') continue;
+    total += record.quantity;
+    if (record.status === 'RX_VERIFIED') rx += record.quantity;
+  }
+  return { total, rx, rxIndex: total === 0 ? 0 : rx / total * 100 };
+}
+
+module.exports = { createPersonalRecord, applyRxAction, summarizeUser };

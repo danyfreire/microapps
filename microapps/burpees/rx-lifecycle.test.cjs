@@ -125,3 +125,43 @@ test('all successful actions produce new objects and leave inputs untouched', ()
     assert.deepEqual({ record, action, context }, snapshot);
   }
 });
+
+test('exports exactly the three contract functions', () => {
+  assert.deepEqual(Object.keys(require('./rx-lifecycle.cjs')).sort(), ['applyRxAction', 'createPersonalRecord', 'summarizeUser']);
+});
+test('empty or unrelated histories return zero', () => {
+  assert.deepEqual(summarizeUser([], 'owner'), { total: 0, rx: 0, rxIndex: 0 });
+  assert.deepEqual(summarizeUser([personal()], 'stranger'), { total: 0, rx: 0, rxIndex: 0 });
+});
+test('all nonvoid states count for Total and only verified records for Rx', () => {
+  const records = ['PERSONAL', 'VERIFICATION_PENDING', 'REJECTED', 'RX_VERIFIED', 'VOIDED'].map((status, i) => ({ ...personal(), id: `r${i}`, status, quantity: 10 * (i + 1) }));
+  records.push({ ...personal(), id: 'other', userId: 'other', status: 'RX_VERIFIED', quantity: 1000 });
+  assert.deepEqual(summarizeUser(records, 'owner'), { total: 100, rx: 40, rxIndex: 40 });
+});
+test('first duplicate wins even if later entries have different state or quantity', () => {
+  const records = [
+    { ...personal(), status: 'VOIDED' },
+    { ...personal(), status: 'RX_VERIFIED', quantity: 1000 },
+    { ...personal(), id: 'r2', quantity: 30 },
+    { ...personal(), id: 'r2', status: 'RX_VERIFIED', quantity: 300 },
+    { ...personal(), id: 'r3', status: 'RX_VERIFIED', quantity: 10 },
+    { ...personal(), id: 'r3', status: 'VOIDED' },
+  ];
+  assert.deepEqual(summarizeUser(records, 'owner'), { total: 40, rx: 10, rxIndex: 25 });
+});
+test('fractional Rx index is a numeric percentage without rounding or weights', () => {
+  const records = [{ ...personal(), quantity: 1, status: 'RX_VERIFIED' }, { ...personal(), id: 'r2', quantity: 2 }];
+  assert.deepEqual(summarizeUser(records, 'owner'), { total: 3, rx: 1, rxIndex: 1 / 3 * 100 });
+});
+test('a fully verified history has an index of 100', () => {
+  assert.deepEqual(summarizeUser([act(pending(), 'APPROVE', 'witness')], 'owner'), { total: 50, rx: 50, rxIndex: 100 });
+});
+test('voided-only history has zero index', () => {
+  assert.deepEqual(summarizeUser([act(personal(), 'VOID')], 'owner'), { total: 0, rx: 0, rxIndex: 0 });
+});
+test('summary leaves frozen arrays and records unchanged', () => {
+  const records = Object.freeze([Object.freeze(personal()), Object.freeze({ ...personal(), id: 'r2', status: 'RX_VERIFIED' })]);
+  const before = structuredClone(records);
+  assert.deepEqual(summarizeUser(records, 'owner'), { total: 100, rx: 50, rxIndex: 50 });
+  assert.deepEqual(records, before);
+});
