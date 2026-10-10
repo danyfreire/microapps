@@ -25,4 +25,36 @@ function createPersonalRecord(input, today) {
   };
 }
 
-module.exports = { createPersonalRecord };
+function applyRxAction(record, action, context) {
+  const { type } = action;
+  if (record.status === 'VOIDED') fail('INVALID_STATE');
+  const allowedFrom = {
+    REQUEST: 'PERSONAL', APPROVE: 'VERIFICATION_PENDING',
+    REJECT: 'VERIFICATION_PENDING', CANCEL: 'VERIFICATION_PENDING',
+  };
+  if (type !== 'VOID' && (!Object.hasOwn(allowedFrom, type) || record.status !== allowedFrom[type])) {
+    fail('INVALID_STATE');
+  }
+  const responder = type === 'APPROVE' || type === 'REJECT';
+  if (context.actorId !== (responder ? record.validatorId : record.userId)) fail('FORBIDDEN');
+
+  switch (type) {
+    case 'REQUEST': {
+      if (typeof action.witnessId !== 'string' || !action.witnessId.trim()) fail('INVALID_WITNESS');
+      if (action.witnessId === record.userId) fail('SELF_VERIFICATION');
+      const elapsed = civilDay(context.today) - civilDay(record.createdDate);
+      if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed > 7) fail('WINDOW_EXPIRED');
+      return { ...record, status: 'VERIFICATION_PENDING', validatorId: action.witnessId };
+    }
+    case 'APPROVE':
+      return { ...record, status: 'RX_VERIFIED', validatedBy: context.actorId };
+    case 'REJECT':
+      return { ...record, status: 'REJECTED' };
+    case 'CANCEL':
+      return { ...record, status: 'PERSONAL', validatorId: null };
+    case 'VOID':
+      return { ...record, status: 'VOIDED' };
+  }
+}
+
+module.exports = { createPersonalRecord, applyRxAction };
