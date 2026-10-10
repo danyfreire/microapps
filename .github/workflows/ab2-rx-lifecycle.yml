@@ -1,0 +1,43 @@
+name: AB2 Rx lifecycle benchmark
+
+on:
+  pull_request:
+    branches:
+      - experiment/ab2-rx-baseline-20261010
+    paths:
+      - 'microapps/burpees/rx-lifecycle.cjs'
+      - 'microapps/burpees/rx-lifecycle.test.cjs'
+
+permissions:
+  contents: read
+
+jobs:
+  neutral-judge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Candidate files
+        run: test -f microapps/burpees/rx-lifecycle.cjs
+      - name: Candidate's own tests
+        shell: bash
+        run: |
+          if [ -f microapps/burpees/rx-lifecycle.test.cjs ]; then
+            node --test microapps/burpees/rx-lifecycle.test.cjs
+          fi
+      - name: Checkout neutral evaluator
+        uses: actions/checkout@v4
+        with:
+          ref: experiment/ab2-rx-evaluation-20261010
+          path: .ab2-evaluator
+          persist-credentials: false
+      - name: Common 35-case benchmark
+        run: node --test .ab2-evaluator/experiments/rx-ab2/evaluation.test.cjs
+        env:
+          RX_IMPL: ${{ github.workspace }}/microapps/burpees/rx-lifecycle.cjs
